@@ -22,7 +22,6 @@ const AnimatedLink = Animated.createAnimatedComponent(Link);
 
 const DURATION = 1000;
 const DELAY = 1000;
-const ITEM_HEIGHT = 300;
 
 type FadeItemProps = {
     index: number;
@@ -59,7 +58,7 @@ const FadeItem: React.FC<FadeItemProps> = ({ index, scrollY, itemHeight, windowH
     });
 
     return (
-        <AnimatedThemedView style={[styles.itemContainer, animatedStyle]}>
+        <AnimatedThemedView style={[styles.itemContainer, { height: windowHeight }, animatedStyle]}>
             {children}
         </AnimatedThemedView>
     );
@@ -102,16 +101,14 @@ export default function InitialScreen1() {
                 showsVerticalScrollIndicator={false}
                 scrollEventThrottle={16}
                 onScroll={onScroll}
-                contentContainerStyle={{
-                    paddingVertical: (windowDimensions.height - ITEM_HEIGHT) / 2,
-                }}
+                pagingEnabled
             >
                 {ITEMS.map((item, index) => (
                     <FadeItem
                         key={item.key}
                         index={index}
                         scrollY={scrollY}
-                        itemHeight={ITEM_HEIGHT}
+                        itemHeight={windowDimensions.height}
                         windowHeight={windowDimensions.height}
                     >
                         {item.isFinal ? (
@@ -181,7 +178,6 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     itemContainer: {
-        height: ITEM_HEIGHT,
         justifyContent: 'center',
         alignItems: 'center',
     },
