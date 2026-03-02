@@ -1,27 +1,44 @@
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useNavigation } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Link } from 'expo-router';
 import React from 'react';
-import { Image, ScrollView, StyleSheet, TouchableOpacity, useWindowDimensions } from 'react-native';
+import { ScrollView, StyleSheet, TouchableOpacity, useWindowDimensions } from 'react-native';
 import Animated, {
     Extrapolation,
     FadeIn,
     FadeOut,
-    interpolate,
     SharedValue,
+    interpolate,
     useAnimatedScrollHandler,
     useAnimatedStyle,
     useSharedValue,
 } from 'react-native-reanimated';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 
 const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
+const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient);
 const AnimatedThemedText = Animated.createAnimatedComponent(ThemedText);
 const AnimatedThemedView = Animated.createAnimatedComponent(ThemedView);
 const AnimatedLink = Animated.createAnimatedComponent(Link);
 
 const DURATION = 1000;
 const DELAY = 1000;
+
+const SPACE_GRADIENTS_DARK: readonly [string, string][] = [
+    ['#050816', '#12054a'],
+    ['#020111', '#341d63'],
+    ['#01010a', '#14315c'],
+    ['#04000a', '#35007a'],
+] as const;
+
+const SPACE_GRADIENTS_LIGHT: readonly [string, string][] = [
+    ['#e0f7ff', '#b3d9ff'],
+    ['#fce4ff', '#ffd1ff'],
+    ['#fff3e0', '#ffe0b2'],
+    ['#e8f5e9', '#c8e6c9'],
+] as const;
 
 type FadeItemProps = {
     index: number;
@@ -64,6 +81,43 @@ const FadeItem: React.FC<FadeItemProps> = ({ index, scrollY, itemHeight, windowH
     );
 };
 
+type BackgroundGradientProps = {
+    index: number;
+    scrollY: SharedValue<number>;
+    windowHeight: number;
+    colors: readonly [string, string];
+};
+
+const BackgroundGradient: React.FC<BackgroundGradientProps> = ({
+    index,
+    scrollY,
+    windowHeight,
+    colors,
+}) => {
+    const animatedStyle = useAnimatedStyle(() => {
+        const page = scrollY.value / windowHeight;
+        const distance = Math.abs(page - index);
+
+        const opacity = interpolate(
+            distance,
+            [0, 0.5, 1],
+            [1, 0.7, 0],
+            Extrapolation.CLAMP
+        );
+
+        return { opacity };
+    });
+
+    return (
+        <AnimatedLinearGradient
+            colors={colors}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={[StyleSheet.absoluteFillObject, animatedStyle]}
+        />
+    );
+};
+
 const ITEMS = [
     {
         key: 'text1',
@@ -86,6 +140,8 @@ const ITEMS = [
 
 export default function InitialScreen1() {
     const navigation = useNavigation<any>();
+    const colorScheme = useColorScheme();
+    const spaceGradients = colorScheme === 'dark' ? SPACE_GRADIENTS_DARK : SPACE_GRADIENTS_LIGHT;
     const windowDimensions = useWindowDimensions();
     const scrollY = useSharedValue(0);
 
@@ -97,6 +153,15 @@ export default function InitialScreen1() {
 
     return (
         <ThemedView style={styles.container}>
+            {spaceGradients.map((colors, index) => (
+                <BackgroundGradient
+                    key={index}
+                    index={index}
+                    scrollY={scrollY}
+                    windowHeight={windowDimensions.height}
+                    colors={colors}
+                />
+            ))}
             <AnimatedScrollView
                 showsVerticalScrollIndicator={false}
                 scrollEventThrottle={16}
@@ -129,6 +194,7 @@ export default function InitialScreen1() {
                                     style={styles.linkStyle}
                                 >
                                     <AnimatedThemedText
+                                        style={styles.transparentText}
                                         entering={FadeIn.duration(DURATION).delay(2000)}
                                         exiting={FadeOut.duration(DURATION)}
                                     >
@@ -141,6 +207,7 @@ export default function InitialScreen1() {
                                     style={styles.linkStyle}
                                 >
                                     <AnimatedThemedText
+                                        style={styles.transparentText}
                                         entering={FadeIn.duration(DURATION).delay(3000)}
                                         exiting={FadeOut.duration(DURATION)}
                                     >
@@ -152,18 +219,19 @@ export default function InitialScreen1() {
                             <ThemedView style={styles.titleContainer}>
                                 <AnimatedThemedText
                                     type="title"
+                                    style={styles.transparentText}
                                     entering={FadeIn.duration(DURATION).delay(DELAY)}
                                     exiting={FadeOut.duration(DURATION)}
                                 >
                                     {item.title}
                                 </AnimatedThemedText>
 
-                                <AnimatedThemedView
+                                {/* <AnimatedThemedView
                                     entering={FadeIn.duration(DURATION).delay(2000)}
                                     exiting={FadeOut.duration(DURATION)}
                                 >
                                     <Image source={require('@/assets/gifs/2.gif')} />
-                                </AnimatedThemedView>
+                                </AnimatedThemedView> */}
                             </ThemedView>
                         )}
                     </FadeItem>
@@ -180,11 +248,13 @@ const styles = StyleSheet.create({
     itemContainer: {
         justifyContent: 'center',
         alignItems: 'center',
+        backgroundColor: 'transparent',
     },
     titleContainer: {
         justifyContent: 'center',
         alignItems: 'center',
         gap: 8,
+        backgroundColor: 'transparent',
     },
     stepContainer: {
         gap: 8,
@@ -200,6 +270,9 @@ const styles = StyleSheet.create({
     linkStyle: {
         fontSize: 30,
         marginBottom: 40,
-    }
+    },
+    transparentText: {
+        // backgroundColor: 'transparent',
+    },
 });
 
