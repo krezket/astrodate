@@ -1,115 +1,140 @@
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, Button, Image, TouchableOpacity} from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { Link } from 'expo-router';
-import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
-import { LinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { useNavigation } from '@react-navigation/native';
+import { Link } from 'expo-router';
+import React from 'react';
+import { Image, ScrollView, StyleSheet, TouchableOpacity, useWindowDimensions } from 'react-native';
+import Animated, {
+    Extrapolation,
+    FadeIn,
+    FadeOut,
+    interpolate,
+    SharedValue,
+    useAnimatedScrollHandler,
+    useAnimatedStyle,
+    useSharedValue,
+} from 'react-native-reanimated';
 
-const AninatedGradient = Animated.createAnimatedComponent(LinearGradient);
+const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
 const AnimatedThemedText = Animated.createAnimatedComponent(ThemedText);
 const AnimatedThemedView = Animated.createAnimatedComponent(ThemedView);
 const AnimatedLink = Animated.createAnimatedComponent(Link);
 
 const DURATION = 1000;
 const DELAY = 1000;
+const ITEM_HEIGHT = 300;
 
-export default function InitialScreen1() {
-    const navigation = useNavigation();
+type FadeItemProps = {
+    index: number;
+    scrollY: SharedValue<number>;
+    itemHeight: number;
+    windowHeight: number;
+    children: React.ReactNode;
+};
 
-    const [step, setStep] = useState(1);
-    const handlePress = () => {
-        setStep((prev) => (prev % 4) + 1);
-    };
+const FadeItem: React.FC<FadeItemProps> = ({ index, scrollY, itemHeight, windowHeight, children }) => {
+    const animatedStyle = useAnimatedStyle(() => {
+        const centerY = scrollY.value + windowHeight / 2;
+        const itemCenterY = index * itemHeight + itemHeight / 2;
+        const distance = Math.abs(centerY - itemCenterY);
+
+        const opacity = interpolate(
+            distance,
+            [0, itemHeight / 2, itemHeight],
+            [1, 0.3, 0],
+            Extrapolation.CLAMP
+        );
+
+        const scale = interpolate(
+            distance,
+            [0, itemHeight / 2, itemHeight],
+            [1, 0.95, 0.9],
+            Extrapolation.CLAMP
+        );
+
+        return {
+            opacity,
+            transform: [{ scale }],
+        };
+    });
 
     return (
-        <ThemedView style={styles.titleContainer}>
-            {step === 1 ? (
-                <ThemedView style={styles.titleContainer}>
-                    <AnimatedThemedText 
-                        key="text1" type="title" 
-                        entering={FadeIn.duration(DURATION).delay(DELAY)}
-                        exiting={FadeOut.duration(DURATION)}
+        <AnimatedThemedView style={[styles.itemContainer, animatedStyle]}>
+            {children}
+        </AnimatedThemedView>
+    );
+};
+
+const ITEMS = [
+    {
+        key: 'text1',
+        title: 'Welcome to Astrodate!',
+    },
+    {
+        key: 'text2',
+        title: 'Find and meet other stars!',
+    },
+    {
+        key: 'text3',
+        title: 'Customize your ship!',
+    },
+    {
+        key: 'cta',
+        title: 'Start your adventure!',
+        isFinal: true,
+    },
+];
+
+export default function InitialScreen1() {
+    const navigation = useNavigation<any>();
+    const windowDimensions = useWindowDimensions();
+    const scrollY = useSharedValue(0);
+
+    const onScroll = useAnimatedScrollHandler({
+        onScroll: (event) => {
+            scrollY.value = event.contentOffset.y;
+        },
+    });
+
+    return (
+        <ThemedView style={styles.container}>
+            <AnimatedScrollView
+                showsVerticalScrollIndicator={false}
+                scrollEventThrottle={16}
+                onScroll={onScroll}
+                contentContainerStyle={{
+                    paddingVertical: (windowDimensions.height - ITEM_HEIGHT) / 2,
+                }}
+            >
+                {ITEMS.map((item, index) => (
+                    <FadeItem
+                        key={item.key}
+                        index={index}
+                        scrollY={scrollY}
+                        itemHeight={ITEM_HEIGHT}
+                        windowHeight={windowDimensions.height}
                     >
-                        Welcome to Astrodate!
-                    </AnimatedThemedText>
-
-                    <TouchableOpacity onPress={handlePress}>
-                        <AnimatedThemedView
-                            key="text1"
-                            entering={FadeIn.duration(DURATION).delay(2000)}
-                            exiting={FadeOut.duration(DURATION)}
-                        >
-                            <Image source={require('@/assets/gifs/2.gif')}></Image> 
-                        </AnimatedThemedView>
-                    </TouchableOpacity>
-                </ThemedView>
-
-            ) : step === 2 ? (
-                    <ThemedView style={styles.titleContainer}>
-                        <AnimatedThemedText 
-                            key="text2"
-                            type="title" 
-                            entering={FadeIn.duration(DURATION).delay(DELAY)}
-                            exiting={FadeOut.duration(DURATION)}
-                        >
-                            Find and meet other stars!
-                        </AnimatedThemedText>
-
-                        <TouchableOpacity onPress={handlePress}>
-                            <AnimatedThemedView
-                                key="text2"
-                                entering={FadeIn.duration(DURATION).delay(2000)}
-                                exiting={FadeOut.duration(DURATION)}
-                            >
-                                <Image source={require('@/assets/gifs/2.gif')}></Image> 
-                            </AnimatedThemedView>
-                        </TouchableOpacity>
-                    </ThemedView>
-
-                ) : step === 3 ? (
-                        <ThemedView style={styles.titleContainer}>
-                            <AnimatedThemedText 
-                                key="text3"
-                                type="title" 
-                                entering={FadeIn.duration(DURATION).delay(DELAY)}
-                                exiting={FadeOut.duration(DURATION)}
-                            >
-                                Customize your ship!
-                            </AnimatedThemedText>
-
-                            <TouchableOpacity onPress={handlePress}>
-                                <AnimatedThemedView
-                                    key="text3"
-                                    entering={FadeIn.duration(DURATION).delay(2000)}
-                                    exiting={FadeOut.duration(DURATION)}
-                                >
-                                    <Image source={require('@/assets/gifs/2.gif')}></Image> 
-                                </AnimatedThemedView>
-                            </TouchableOpacity>
-                        </ThemedView>
-
-                    ) : (
+                        {item.isFinal ? (
                             <ThemedView style={styles.titleContainer}>
-                                <AnimatedLink 
-                                    key="text4"
+                                <AnimatedLink
                                     href={'./(app)/(tabs)/'}
                                     replace
                                     entering={FadeIn.duration(DURATION).delay(DELAY)}
                                     exiting={FadeOut.duration(DURATION)}
                                 >
                                     <ThemedText style={styles.linkStyle}>
-                                        Start your adventure!
+                                        {item.title}
                                     </ThemedText>
                                 </AnimatedLink>
 
                                 <TouchableOpacity
                                     onPress={() => navigation.navigate("login")}
                                     style={styles.linkStyle}
-                                    // href={'./login.tsx'}
                                 >
-                                    <AnimatedThemedText key="text5" entering={FadeIn.duration(DURATION).delay(2000)} exiting={FadeOut.duration(DURATION)}>
+                                    <AnimatedThemedText
+                                        entering={FadeIn.duration(DURATION).delay(2000)}
+                                        exiting={FadeOut.duration(DURATION)}
+                                    >
                                         Log In
                                     </AnimatedThemedText>
                                 </TouchableOpacity>
@@ -117,23 +142,50 @@ export default function InitialScreen1() {
                                 <TouchableOpacity
                                     onPress={() => navigation.navigate("signup")}
                                     style={styles.linkStyle}
-                                    // href={'./login.tsx'}
                                 >
-                                    <AnimatedThemedText key="text6" entering={FadeIn.duration(DURATION).delay(3000)} exiting={FadeOut.duration(DURATION)}>
+                                    <AnimatedThemedText
+                                        entering={FadeIn.duration(DURATION).delay(3000)}
+                                        exiting={FadeOut.duration(DURATION)}
+                                    >
                                         Sign Up
                                     </AnimatedThemedText>
                                 </TouchableOpacity>
+                            </ThemedView>
+                        ) : (
+                            <ThemedView style={styles.titleContainer}>
+                                <AnimatedThemedText
+                                    type="title"
+                                    entering={FadeIn.duration(DURATION).delay(DELAY)}
+                                    exiting={FadeOut.duration(DURATION)}
+                                >
+                                    {item.title}
+                                </AnimatedThemedText>
 
+                                <AnimatedThemedView
+                                    entering={FadeIn.duration(DURATION).delay(2000)}
+                                    exiting={FadeOut.duration(DURATION)}
+                                >
+                                    <Image source={require('@/assets/gifs/2.gif')} />
+                                </AnimatedThemedView>
                             </ThemedView>
                         )}
-
+                    </FadeItem>
+                ))}
+            </AnimatedScrollView>
         </ThemedView>
     );
 }
 
 const styles = StyleSheet.create({
-    titleContainer: {
+    container: {
         flex: 1,
+    },
+    itemContainer: {
+        height: ITEM_HEIGHT,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    titleContainer: {
         justifyContent: 'center',
         alignItems: 'center',
         gap: 8,
