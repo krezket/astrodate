@@ -15,6 +15,7 @@ import Animated, {
     useAnimatedStyle,
     useSharedValue,
 } from 'react-native-reanimated';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 
 const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
 const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient);
@@ -25,11 +26,18 @@ const AnimatedLink = Animated.createAnimatedComponent(Link);
 const DURATION = 1000;
 const DELAY = 1000;
 
-const SPACE_GRADIENTS: readonly [string, string][] = [
+const SPACE_GRADIENTS_DARK: readonly [string, string][] = [
     ['#050816', '#12054a'],
     ['#020111', '#341d63'],
     ['#01010a', '#14315c'],
     ['#04000a', '#35007a'],
+] as const;
+
+const SPACE_GRADIENTS_LIGHT: readonly [string, string][] = [
+    ['#e0f7ff', '#b3d9ff'],
+    ['#fce4ff', '#ffd1ff'],
+    ['#fff3e0', '#ffe0b2'],
+    ['#e8f5e9', '#c8e6c9'],
 ] as const;
 
 type FadeItemProps = {
@@ -132,6 +140,8 @@ const ITEMS = [
 
 export default function InitialScreen1() {
     const navigation = useNavigation<any>();
+    const colorScheme = useColorScheme();
+    const spaceGradients = colorScheme === 'dark' ? SPACE_GRADIENTS_DARK : SPACE_GRADIENTS_LIGHT;
     const windowDimensions = useWindowDimensions();
     const scrollY = useSharedValue(0);
 
@@ -143,7 +153,7 @@ export default function InitialScreen1() {
 
     return (
         <ThemedView style={styles.container}>
-            {SPACE_GRADIENTS.map((colors, index) => (
+            {spaceGradients.map((colors, index) => (
                 <BackgroundGradient
                     key={index}
                     index={index}
