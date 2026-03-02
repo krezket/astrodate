@@ -93,14 +93,15 @@ export default function InitialScreen1() {
                     ) : (
                             <ThemedView style={styles.titleContainer}>
                                 <AnimatedLink 
-                                    style={styles.linkStyle}
                                     key="text4"
                                     href={'./(app)/(tabs)/'}
                                     replace
                                     entering={FadeIn.duration(DURATION).delay(DELAY)}
                                     exiting={FadeOut.duration(DURATION)}
                                 >
-                                    Start your adventure!
+                                    <ThemedText style={styles.linkStyle}>
+                                        Start your adventure!
+                                    </ThemedText>
                                 </AnimatedLink>
 
                                 <TouchableOpacity

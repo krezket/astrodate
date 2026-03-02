@@ -19,8 +19,11 @@ export default function AppLayout() {
         //     <Redirect href="/signin"/> 
         //     :
             <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-                <Stack>
-                    <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack>
+                <Stack.Screen name="(tabs)" options={{ 
+                    // removes (tabs) header
+                    headerShown: false, 
+                }} />
                 </Stack>
                 <StatusBar style="auto" />
             </ThemeProvider>
