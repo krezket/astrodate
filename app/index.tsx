@@ -164,7 +164,11 @@ export default function InitialScreen1() {
         <ThemedView style={styles.container}>
             <AnimatedImageBackground
                 source={require('../assets/gifs/backstar1.gif')}
-                style={[styles.backgroundImage, backgroundAnimatedStyle]}
+                style={[
+                    styles.backgroundImage,
+                    { height: windowDimensions.height * 2 },
+                    backgroundAnimatedStyle,
+                ]}
                 resizeMode="cover"
             />
 
@@ -255,7 +259,10 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     backgroundImage: {
-        ...StyleSheet.absoluteFillObject,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
     },
     itemContainer: {
         justifyContent: 'center',
