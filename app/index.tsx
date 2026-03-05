@@ -19,6 +19,7 @@ import Animated, {
 
 const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
 const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient);
+const AnimatedImageBackground = Animated.createAnimatedComponent(ImageBackground);
 const AnimatedThemedText = Animated.createAnimatedComponent(ThemedText);
 const AnimatedThemedView = Animated.createAnimatedComponent(ThemedView);
 const AnimatedLink = Animated.createAnimatedComponent(Link);
@@ -151,91 +152,100 @@ export default function InitialScreen1() {
         },
     });
 
+    const backgroundAnimatedStyle = useAnimatedStyle(() => ({
+        transform: [
+            {
+                translateY: -scrollY.value * 0.2,
+            },
+        ],
+    }));
+
     return (
         <ThemedView style={styles.container}>
-            <ImageBackground
+            <AnimatedImageBackground
                 source={require('../assets/gifs/backstar1.gif')}
-                style={styles.backgroundImage}
+                style={[styles.backgroundImage, backgroundAnimatedStyle]}
                 resizeMode="cover"
+            />
+
+            {spaceGradients.map((colors, index) => (
+                <BackgroundGradient
+                    key={index}
+                    index={index}
+                    scrollY={scrollY}
+                    windowHeight={windowDimensions.height}
+                    colors={colors}
+                />
+            ))}
+
+            <AnimatedScrollView
+                showsVerticalScrollIndicator={false}
+                scrollEventThrottle={16}
+                onScroll={onScroll}
+                pagingEnabled
             >
-                {spaceGradients.map((colors, index) => (
-                    <BackgroundGradient
-                        key={index}
+                {ITEMS.map((item, index) => (
+                    <FadeItem
+                        key={item.key}
                         index={index}
                         scrollY={scrollY}
+                        itemHeight={windowDimensions.height}
                         windowHeight={windowDimensions.height}
-                        colors={colors}
-                    />
-                ))}
-                <AnimatedScrollView
-                    showsVerticalScrollIndicator={false}
-                    scrollEventThrottle={16}
-                    onScroll={onScroll}
-                    pagingEnabled
-                >
-                    {ITEMS.map((item, index) => (
-                        <FadeItem
-                            key={item.key}
-                            index={index}
-                            scrollY={scrollY}
-                            itemHeight={windowDimensions.height}
-                            windowHeight={windowDimensions.height}
-                        >
-                            {item.isFinal ? (
-                                <ThemedView style={styles.titleContainer}>
-                                    <AnimatedLink
-                                        href={'./(app)/(tabs)/'}
-                                        replace
-                                        entering={FadeIn.duration(DURATION).delay(DELAY)}
-                                        exiting={FadeOut.duration(DURATION)}
-                                    >
-                                        <ThemedText style={styles.linkStyle}>
-                                            {item.title}
-                                        </ThemedText>
-                                    </AnimatedLink>
-
-                                    <TouchableOpacity
-                                        onPress={() => navigation.navigate("login")}
-                                        style={styles.linkStyle}
-                                    >
-                                        <AnimatedThemedText
-                                            style={styles.transparentText}
-                                            entering={FadeIn.duration(DURATION).delay(2000)}
-                                            exiting={FadeOut.duration(DURATION)}
-                                        >
-                                            Log In
-                                        </AnimatedThemedText>
-                                    </TouchableOpacity>
-
-                                    <TouchableOpacity
-                                        onPress={() => navigation.navigate("signup")}
-                                        style={styles.linkStyle}
-                                    >
-                                        <AnimatedThemedText
-                                            style={styles.transparentText}
-                                            entering={FadeIn.duration(DURATION).delay(3000)}
-                                            exiting={FadeOut.duration(DURATION)}
-                                        >
-                                            Sign Up
-                                        </AnimatedThemedText>
-                                    </TouchableOpacity>
-                                </ThemedView>
-                            ) : (
-                                <ThemedView style={styles.titleContainer}>
-                                    <AnimatedThemedText
-                                        type="title"
-                                        style={styles.transparentText}
-                                        entering={FadeIn.duration(DURATION).delay(DELAY)}
-                                        exiting={FadeOut.duration(DURATION)}
-                                    >
+                    >
+                        {item.isFinal ? (
+                            <ThemedView style={styles.titleContainer}>
+                                <AnimatedLink
+                                    href={'./(app)/(tabs)/'}
+                                    replace
+                                    entering={FadeIn.duration(DURATION).delay(DELAY)}
+                                    exiting={FadeOut.duration(DURATION)}
+                                >
+                                    <ThemedText style={styles.linkStyle}>
                                         {item.title}
+                                    </ThemedText>
+                                </AnimatedLink>
+
+                                <TouchableOpacity
+                                    onPress={() => navigation.navigate("login")}
+                                    style={styles.linkStyle}
+                                >
+                                    <AnimatedThemedText
+                                        style={styles.transparentText}
+                                        entering={FadeIn.duration(DURATION).delay(2000)}
+                                        exiting={FadeOut.duration(DURATION)}
+                                    >
+                                        Log In
                                     </AnimatedThemedText>
-                                </ThemedView>
-                            )}
-                        </FadeItem>
-                    ))}
-                </AnimatedScrollView>
-            </ImageBackground>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
+                                    onPress={() => navigation.navigate("signup")}
+                                    style={styles.linkStyle}
+                                >
+                                    <AnimatedThemedText
+                                        style={styles.transparentText}
+                                        entering={FadeIn.duration(DURATION).delay(3000)}
+                                        exiting={FadeOut.duration(DURATION)}
+                                    >
+                                        Sign Up
+                                    </AnimatedThemedText>
+                                </TouchableOpacity>
+                            </ThemedView>
+                        ) : (
+                            <ThemedView style={styles.titleContainer}>
+                                <AnimatedThemedText
+                                    type="title"
+                                    style={styles.transparentText}
+                                    entering={FadeIn.duration(DURATION).delay(DELAY)}
+                                    exiting={FadeOut.duration(DURATION)}
+                                >
+                                    {item.title}
+                                </AnimatedThemedText>
+                            </ThemedView>
+                        )}
+                    </FadeItem>
+                ))}
+            </AnimatedScrollView>
         </ThemedView>
     );
 }
